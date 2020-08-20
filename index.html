@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Covid19 Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
+    integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
+    crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto Condensed', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-flow: column wrap;
+      align-items: center;
+      background: #DEE1E6;
+    }
+
+    .searchCountry {
+      margin-top: auto;
+      margin-bottom: auto;
+      position: relative;
+    }
+
+    .covidTracker {
+      margin-top: auto;
+      margin-bottom: auto;
+      padding: 12px;
+      display: flex;
+      flex-flow: row wrap;
+      width: 624px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.07), 0 4px 8px rgba(0, 0, 0, 0.07), 0 8px 16px rgba(0, 0, 0, 0.07), 0 16px 32px rgba(0, 0, 0, 0.07), 0 32px 64px rgba(0, 0, 0, 0.07);
+    }
+
+    .covidTracker>p {
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .covidTracker .summery p {
+      text-align: center;
+    }
+
+    .covidTracker .summery p span:not(:last-child) {
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .covidTracker .summery p span:first-child {
+      font-size: 24px;
+    }
+
+    .covidTracker .summery p span:nth-child(2) {
+      display: block;
+      color: #718096;
+    }
+
+    .covidTracker .summery p span:last-child {
+      font-size: 12px;
+    }
+
+    .covidTracker .summery p span {
+      font-weight: 600;
+    }
+
+    .w100 {
+      flex-basis: 100%;
+      margin: 0;
+      padding: 0;
+      height: 0;
+    }
+
+    .summery {
+      flex-basis: calc(100% /3);
+    }
+
+    .searchCountry input {
+      width: 260px;
+      height: 40px;
+      border: 0;
+      font-family: 'Roboto Condensed', sans-serif;
+    }
+
+    .circle {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #DEE1E6;
+    }
+
+    .searchCountry,
+    .searchCountry input {
+      border-radius: 50px;
+      font-size: 18px;
+      padding-left: 8px;
+    }
+
+    .searchCountry input:focus {
+      outline: 0;
+    }
+
+    .searchIcon {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: translateX(50%);
+      cursor: pointer;
+    }
+
+    div#searchBtn i {
+      color: #718096;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="searchCountry">
+    <input type='text' name='Country' id='getUserCountry' placeholder="Search here">
+    <div class="circle">
+      <div id="searchBtn" class="searchIcon"><i class="fas fa-search"></i></div>
+    </div>
+  </div>
+  <div class="covidTracker">
+    <p> <span id="Country">Bangladesh</span> Overview</p>
+    <div class='w100'></div>
+    <div class='summery'>
+      <p>
+        <span id="totalConfirmed" style="color: #e53e3e;">0</span>
+        <span>Confirmed</span>
+        <span id="newConfirmed" style="color: #e53e3e;">+0 new cases</span>
+      </p>
+    </div>
+    <div class='summery'>
+      <p>
+        <span id="totalRecovered" style="color: #38a169;">0</span>
+        <span>Recovered</span>
+        <span id="newRecovered" style="color: #38a169;">+0 new recover</span>
+      </p>
+    </div>
+    <div class='summery'>
+      <p>
+        <span id="totalDeaths" style="color: #718096;">0</span>
+        <span>Deaths</span>
+        <span id="newDeaths" style="color: #718096;">+0 new deaths</span>
+      </p>
+    </div>
+
+  </div>
+  <script>
+    const searchBtn = document.getElementById('searchBtn');
+    const getUserCountry = document.getElementById('getUserCountry');
+
+    const getCountryName = async () => {
+      const res = await fetch('https://freegeoip.app/json/');
+      return res.json();
+    }
+
+    const covid19API = async () => {
+      const res = await fetch('https://api.covid19api.com/summary');
+      return res.json();
+    }
+
+    getCountryName().then(country => {
+      covid19API().then(data => showCovid19Data(data.Countries, country.country_name))
+    })
+
+    searchBtn.addEventListener('click', () => {
+      covid19API().then(data => showCovid19Data(data.Countries, getUserCountry.value))
+    })
+
+    const showCovid19Data = (countriesData, userCountry) => {
+      const country = countriesData.find(country => country.Country === userCountry);
+      if (country) {
+        updateInnerText('totalConfirmed', country.TotalConfirmed.toLocaleString());
+        updateInnerText('newConfirmed', `+${country.NewConfirmed.toLocaleString()} new cases`);
+        updateInnerText('totalRecovered', country.TotalRecovered.toLocaleString());
+        updateInnerText('newRecovered', `+${country.NewRecovered.toLocaleString()} new recover`);
+        updateInnerText('totalDeaths', country.TotalDeaths.toLocaleString());
+        updateInnerText('newDeaths', `+${country.NewDeaths.toLocaleString()} new deaths`);
+        updateInnerText('Country', country.Country);
+      } else {
+        alert('Not Found');
+      }
+    }
+
+    const updateInnerText = (id, value) => document.getElementById(id).innerText = value;
+  </script>
+</body>
+
+</html>
